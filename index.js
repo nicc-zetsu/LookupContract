@@ -36,7 +36,7 @@ async function main() {
     const contractInstantiateTx = new ContractCreateTransaction()
         .setBytecodeFileId(bytecodeFileId)
         .setGas(100000)
-        .setConstructorParameters(new ContractFunctionParameters().addString("Bob").addUint256(111111));
+        .setConstructorParameters(new ContractFunctionParameters().addString("Alice").addUint256(111111));
     const contractInstantiateSubmit = await contractInstantiateTx.execute(client);
     const contractInstantiateRx = await contractInstantiateSubmit.getReceipt(client);
     const contractId = contractInstantiateRx.contractId;
@@ -48,16 +48,32 @@ async function main() {
     const contractQueryTx = new ContractCallQuery()
         .setContractId(contractId)
         .setGas(100000)
-        .setFunction("getMobileNumber", new ContractFunctionParameters().addString("Bob"))
+        .setFunction("getMobileNumber", new ContractFunctionParameters().addString("Alice"))
         .setMaxQueryPayment(new Hbar(1));
     const contractQuerySubmit = await contractQueryTx.execute(client);
     const contractQueryResult = contractQuerySubmit.getUint256(0);
     console.log(`- Here's the phone number that you asked for: ${contractQueryResult} \n`);
     
     //call contract function to update the state variable
+    const contractExecuteTx = new ContractExecuteTransaction()
+    .setContractId(contractId)
+    .setGas(100000)
+    .setFunction("setMobileNumber", new ContractFunctionParameters().addString("Bob").addUint256(2222))
+    .setMaxTransactionFee(new Hbar(0.75));
+    const contractExecuteSubmit = await contractExecuteTx.execute(client);
+    const contractExecuteRx = await contractExecuteSubmit.getReceipt(client);
+    console.log(`- Contract function call satus: ${contractExecuteRx.status} \n`);
     
 
     //query the contract to check changes in state variable
+    const contractQueryTx1 = new ContractCallQuery()
+        .setContractId(contractId)
+        .setGas(100000)
+        .setFunction("getMobileNumber", new ContractFunctionParameters().addString("Bob"))
+        .setMaxQueryPayment(new Hbar(1));
+    const contractQuerySubmit1 = await contractQueryTx1.execute(client);
+    const contractQueryResult1 = contractQuerySubmit1.getUint256(0);
+    console.log(`- Here's the phone number that you asked for: ${contractQueryResult1} \n`);
 }
 
 main()
